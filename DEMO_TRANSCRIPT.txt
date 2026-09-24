@@ -1,0 +1,332 @@
+EXPRSCOPE | GROUP 2 | GUIDED DEMONSTRATION
+
+================================================================
+01. Precedence
+Multiplication forms a subtree before addition.
+SOURCE  2 + 3 * 4
+LEXER
+   0  NUMBER     '2'
+   2  PLUS       '+'
+   4  NUMBER     '3'
+   6  STAR       '*'
+   8  NUMBER     '4'
+   9  EOF        ''
+AST
+Binary(+)
+  Number(2)
+  Binary(*)
+    Number(3)
+    Number(4)
+SEMANTICS
+Valid; inferred type: Number
+EVALUATION
+Number => 2
+Number => 3
+Number => 4
+Binary * => 12
+Binary + => 14
+OUTPUT
+14 : Number
+CHECK  PASS
+
+================================================================
+02. Parentheses
+Parentheses change the tree, and therefore the result.
+SOURCE  (2 + 3) * 4
+LEXER
+   0  LPAREN     '('
+   1  NUMBER     '2'
+   3  PLUS       '+'
+   5  NUMBER     '3'
+   6  RPAREN     ')'
+   8  STAR       '*'
+  10  NUMBER     '4'
+  11  EOF        ''
+AST
+Binary(*)
+  Binary(+)
+    Number(2)
+    Number(3)
+  Number(4)
+SEMANTICS
+Valid; inferred type: Number
+EVALUATION
+Number => 2
+Number => 3
+Binary + => 5
+Number => 4
+Binary * => 20
+OUTPUT
+20 : Number
+CHECK  PASS
+
+================================================================
+03. Associativity
+Power groups to the right: 2 ^ (3 ^ 2).
+SOURCE  2 ^ 3 ^ 2
+LEXER
+   0  NUMBER     '2'
+   2  CARET      '^'
+   4  NUMBER     '3'
+   6  CARET      '^'
+   8  NUMBER     '2'
+   9  EOF        ''
+AST
+Binary(^)
+  Number(2)
+  Binary(^)
+    Number(3)
+    Number(2)
+SEMANTICS
+Valid; inferred type: Number
+EVALUATION
+Number => 2
+Number => 3
+Number => 2
+Binary ^ => 9
+Binary ^ => 512
+OUTPUT
+512 : Number
+CHECK  PASS
+
+================================================================
+04. Scope
+The initializer sees outer x; inner x does not replace outer x.
+SOURCE  let x = 10 in (let x = x + 1 in x) + x
+LEXER
+   0  LET        'let'
+   4  IDENT      'x'
+   6  ASSIGN     '='
+   8  NUMBER     '10'
+  11  IN         'in'
+  14  LPAREN     '('
+  15  LET        'let'
+  19  IDENT      'x'
+  21  ASSIGN     '='
+  23  IDENT      'x'
+  25  PLUS       '+'
+  27  NUMBER     '1'
+  29  IN         'in'
+  32  IDENT      'x'
+  33  RPAREN     ')'
+  35  PLUS       '+'
+  37  IDENT      'x'
+  38  EOF        ''
+AST
+Let(x)
+  Value:
+    Number(10)
+  Body:
+    Binary(+)
+      Let(x)
+        Value:
+          Binary(+)
+            Variable(x)
+            Number(1)
+        Body:
+          Variable(x)
+      Variable(x)
+SEMANTICS
+Valid; inferred type: Number
+EVALUATION
+Number => 10
+Variable x => 10
+Number => 1
+Binary + => 11
+Variable x => 11
+Let x => 11
+Variable x => 10
+Binary + => 21
+Let x => 21
+OUTPUT
+21 : Number
+CHECK  PASS
+
+================================================================
+05. Selection
+Both branches are checked, but only the selected branch executes.
+SOURCE  if 3 < 5 then fact(5) else 10 / 0
+LEXER
+   0  IF         'if'
+   3  NUMBER     '3'
+   5  LT         '<'
+   7  NUMBER     '5'
+   9  THEN       'then'
+  14  IDENT      'fact'
+  18  LPAREN     '('
+  19  NUMBER     '5'
+  20  RPAREN     ')'
+  22  ELSE       'else'
+  27  NUMBER     '10'
+  30  SLASH      '/'
+  32  NUMBER     '0'
+  33  EOF        ''
+AST
+If
+  Condition:
+    Binary(<)
+      Number(3)
+      Number(5)
+  Then:
+    Call(fact)
+      Number(5)
+  Else:
+    Binary(/)
+      Number(10)
+      Number(0)
+SEMANTICS
+Valid; inferred type: Number
+EVALUATION
+Number => 3
+Number => 5
+Binary < => true
+Number => 5
+Call fact => 120
+If => 120
+OUTPUT
+120 : Number
+CHECK  PASS
+
+================================================================
+06. Short circuit
+The right operand is well typed but never evaluated.
+SOURCE  false and (10 / 0 > 1)
+LEXER
+   0  FALSE      'false'
+   6  AND        'and'
+  10  LPAREN     '('
+  11  NUMBER     '10'
+  14  SLASH      '/'
+  16  NUMBER     '0'
+  18  GT         '>'
+  20  NUMBER     '1'
+  21  RPAREN     ')'
+  22  EOF        ''
+AST
+Binary(and)
+  Boolean(false)
+  Binary(>)
+    Binary(/)
+      Number(10)
+      Number(0)
+    Number(1)
+SEMANTICS
+Valid; inferred type: Boolean
+EVALUATION
+Bool => false
+Binary and => false
+OUTPUT
+false : Boolean
+CHECK  PASS
+
+================================================================
+07. Recursion
+Built-ins use host-language recursion; Fibonacci memoizes repeated calls.
+SOURCE  fact(5) + fib(6)
+LEXER
+   0  IDENT      'fact'
+   4  LPAREN     '('
+   5  NUMBER     '5'
+   6  RPAREN     ')'
+   8  PLUS       '+'
+  10  IDENT      'fib'
+  13  LPAREN     '('
+  14  NUMBER     '6'
+  15  RPAREN     ')'
+  16  EOF        ''
+AST
+Binary(+)
+  Call(fact)
+    Number(5)
+  Call(fib)
+    Number(6)
+SEMANTICS
+Valid; inferred type: Number
+EVALUATION
+Number => 5
+Call fact => 120
+Number => 6
+Call fib => 8
+Binary + => 128
+OUTPUT
+128 : Number
+CHECK  PASS
+
+================================================================
+08. Lexical error
+The character is not a token.
+SOURCE  2 $ 3
+Lexical error: Unexpected character '$' at position 2.
+2 $ 3
+  ^
+CHECK  PASS
+
+================================================================
+09. Syntax error
+Valid tokens appear in an invalid order.
+SOURCE  2 + * 3
+LEXER
+   0  NUMBER     '2'
+   2  PLUS       '+'
+   4  STAR       '*'
+   6  NUMBER     '3'
+   7  EOF        ''
+Syntax error: Expected expression at position 4, found '*'.
+2 + * 3
+    ^
+CHECK  PASS
+
+================================================================
+10. Type error
+Valid syntax does not imply valid types.
+SOURCE  1 + true
+LEXER
+   0  NUMBER     '1'
+   2  PLUS       '+'
+   4  TRUE       'true'
+   8  EOF        ''
+AST
+Binary(+)
+  Number(1)
+  Boolean(true)
+Semantic error: Operator '+' requires Number operands.
+CHECK  PASS
+
+================================================================
+11. Binding error
+An identifier needs a visible local binding.
+SOURCE  x + 1
+LEXER
+   0  IDENT      'x'
+   2  PLUS       '+'
+   4  NUMBER     '1'
+   5  EOF        ''
+AST
+Binary(+)
+  Variable(x)
+  Number(1)
+Semantic error: Undefined identifier 'x'.
+CHECK  PASS
+
+================================================================
+12. Runtime error
+Well-typed arithmetic can still fail at runtime.
+SOURCE  10 / 0
+LEXER
+   0  NUMBER     '10'
+   3  SLASH      '/'
+   5  NUMBER     '0'
+   6  EOF        ''
+AST
+Binary(/)
+  Number(10)
+  Number(0)
+SEMANTICS
+Valid; inferred type: Number
+EVALUATION
+Number => 10
+Number => 0
+Runtime error: Division by zero.
+CHECK  PASS
+
+Demonstration checks: 12/12 passed.

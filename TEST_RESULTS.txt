@@ -1,0 +1,52 @@
+Verification date: 2026-09-24
+Python: 3.12.14 (main, Aug 25 2026, 14:01:42) [MSC v.1944 64 bit (AMD64)]
+
+test_boolean_logic (test_exprscope.ExprScopeTests.test_boolean_logic) ... ok
+test_conditional (test_exprscope.ExprScopeTests.test_conditional) ... ok
+test_division_by_zero (test_exprscope.ExprScopeTests.test_division_by_zero) ... ok
+test_function_arity_error (test_exprscope.ExprScopeTests.test_function_arity_error) ... ok
+test_function_call (test_exprscope.ExprScopeTests.test_function_call) ... ok
+test_let_binding (test_exprscope.ExprScopeTests.test_let_binding) ... ok
+test_lexical_error (test_exprscope.ExprScopeTests.test_lexical_error) ... ok
+test_lexical_scope_and_shadowing (test_exprscope.ExprScopeTests.test_lexical_scope_and_shadowing) ... ok
+test_parentheses (test_exprscope.ExprScopeTests.test_parentheses) ... ok
+test_precedence (test_exprscope.ExprScopeTests.test_precedence) ... ok
+test_recursive_functions (test_exprscope.ExprScopeTests.test_recursive_functions) ... ok
+test_right_associative_power (test_exprscope.ExprScopeTests.test_right_associative_power) ... ok
+test_syntax_error (test_exprscope.ExprScopeTests.test_syntax_error) ... ok
+test_type_error (test_exprscope.ExprScopeTests.test_type_error) ... ok
+test_undefined_identifier (test_exprscope.ExprScopeTests.test_undefined_identifier) ... ok
+test_cli_success_and_failure_statuses (test_exprscope_extended.PresentationTests.test_cli_success_and_failure_statuses) ... ok
+test_comments_and_docstrings_are_lowercase (test_exprscope_extended.PresentationTests.test_comments_and_docstrings_are_lowercase) ... ok
+test_demo_asserts_all_examples (test_exprscope_extended.PresentationTests.test_demo_asserts_all_examples) ... ok
+test_file_mode_continues_after_errors (test_exprscope_extended.PresentationTests.test_file_mode_continues_after_errors) ... ok
+test_lexical_error_caret (test_exprscope_extended.PresentationTests.test_lexical_error_caret) ... ok
+test_missing_file (test_exprscope_extended.PresentationTests.test_missing_file) ... ok
+test_repl_recovers_after_failure (test_exprscope_extended.PresentationTests.test_repl_recovers_after_failure) ... ok
+test_reports_retain_only_completed_stages (test_exprscope_extended.PresentationTests.test_reports_retain_only_completed_stages) ... ok
+test_syntax_tree_precedence (test_exprscope_extended.PresentationTests.test_syntax_tree_precedence) ... ok
+test_trace_shows_short_circuit (test_exprscope_extended.PresentationTests.test_trace_shows_short_circuit) ... ok
+test_bindings_do_not_persist_between_inputs (test_exprscope_extended.SemanticRegressionTests.test_bindings_do_not_persist_between_inputs) ... ok
+test_deep_inputs_produce_language_errors (test_exprscope_extended.SemanticRegressionTests.test_deep_inputs_produce_language_errors) ... ok
+test_illegal_characters (test_exprscope_extended.SemanticRegressionTests.test_illegal_characters) ... ok
+test_input_limits (test_exprscope_extended.SemanticRegressionTests.test_input_limits) ... ok
+test_malformed_inputs (test_exprscope_extended.SemanticRegressionTests.test_malformed_inputs) ... ok
+test_numeric_and_boolean_semantics (test_exprscope_extended.SemanticRegressionTests.test_numeric_and_boolean_semantics) ... ok
+test_numeric_boundaries (test_exprscope_extended.SemanticRegressionTests.test_numeric_boundaries) ... ok
+test_numeric_domain_errors (test_exprscope_extended.SemanticRegressionTests.test_numeric_domain_errors) ... ok
+test_static_checks_include_unexecuted_branches (test_exprscope_extended.SemanticRegressionTests.test_static_checks_include_unexecuted_branches) ... ok
+test_invalid_requests (test_exprscope_web.WebTests.test_invalid_requests) ... ok
+test_page_and_examples (test_exprscope_web.WebTests.test_page_and_examples) ... ok
+test_pipeline_and_recovery (test_exprscope_web.WebTests.test_pipeline_and_recovery) ... ok
+test_unlisted_routes_do_not_expose_files (test_exprscope_web.WebTests.test_unlisted_routes_do_not_expose_files) ... ok
+
+----------------------------------------------------------------------
+Ran 38 tests in 0.804s
+
+OK
+
+Browser verification using the running local presentation:
+PASS: all 12 examples displayed their expected values or error stages.
+PASS: custom expression 6 * 7 returned 42 after the runtime error example.
+PASS: the syntax tree tab updated to Binary(*) with Number(6) and Number(7).
+PASS: responsive layout visually inspected in the in-app browser.
