@@ -1,39 +1,542 @@
 <!doctype html>
 <html lang="en">
 <head>
-<meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
-<title>ExprScope · Expression Lab</title>
-<style>
-:root{color-scheme:dark;font-family:Inter,Segoe UI,Arial,sans-serif;background:#0c1220;color:#dfe8f5}*{box-sizing:border-box}body{margin:0}button,select,textarea{font:inherit}button,select{cursor:pointer}button:focus-visible,select:focus-visible,textarea:focus-visible{outline:3px solid #8fdcc4;outline-offset:3px}.shell{max-width:1320px;margin:auto;padding:36px 40px}header{display:flex;align-items:center;justify-content:space-between;margin-bottom:34px}.brand{display:flex;gap:14px;align-items:center}.logo{background:#b1edd7;color:#142a28;border-radius:14px;padding:13px;font:700 24px Consolas,monospace}.brand h1{margin:0;font-size:27px;letter-spacing:-1px}.subtitle{font-size:12px;color:#8493aa;letter-spacing:1.4px;text-transform:uppercase;margin-top:5px}.badge{border:1px solid #344457;border-radius:30px;padding:9px 15px;font-size:12px;color:#b1edd7}.intro h2{font-size:36px;letter-spacing:-1.1px;font-weight:600;margin:0 0 10px}.intro p{color:#94a5be;margin:0;line-height:1.6}.pipeline{display:grid;grid-template-columns:repeat(5,1fr);gap:8px;margin:28px 0}.stage{padding:12px;border:1px solid #28354a;border-radius:8px;font-size:13px;color:#8596b1}.stage b{display:block;color:#c8d6e9;margin-top:5px;font-weight:500}.stage.done{border-color:#416b61;background:#142b2a}.stage.done b{color:#b1edd7}.stage.failed{border-color:#9b555e;background:#352029}.stage.failed b{color:#ffafb9}.layout{display:grid;grid-template-columns: minmax(320px,.9fr) minmax(440px,1.3fr);gap:20px}.panel{background:#131e30;border:1px solid #28354a;border-radius:14px;overflow:hidden}.pad{padding:24px}.eyebrow{text-transform:uppercase;font-size:11px;letter-spacing:1.7px;color:#8fa3be;margin-bottom:15px}.row{display:flex;gap:10px;align-items:center;justify-content:space-between}select{background:#1c2a3e;color:#e2eaf7;border:1px solid #3b4b62;border-radius:7px;padding:10px;min-width:0;flex:1}button{border:1px solid #3b4b62;background:transparent;color:#c8d6e9;border-radius:7px;padding:10px 14px}button:hover{background:#25344c}button:disabled{opacity:.5;cursor:wait}.lesson{color:#a6b6cd;line-height:1.6;font-size:14px;min-height:66px;margin:16px 0}label{display:block;font-size:12px;color:#a9bdd4;margin-bottom:10px}textarea{display:block;resize:vertical;width:100%;min-height:145px;background:#0b1322;color:#eef5ff;border:1px solid #354660;border-radius:9px;padding:18px;font-family:Consolas,monospace;font-size:18px;line-height:1.6}#run{background:#b1edd7;color:#102a25;border:0;font-weight:650;margin-top:16px;width:100%;padding:13px}#run:hover{background:#cbf6e7}.hint{font-size:11px;color:#8396af;text-align:center;margin-top:10px}.result{margin-top:22px;padding-top:20px;border-top:1px solid #2b3a50}#result{white-space:pre-wrap;overflow-wrap:anywhere;font:600 27px/1.4 Consolas,monospace;color:#b1edd7;margin:8px 0}#result.error{font:14px/1.6 Consolas,monospace;color:#ffafb9}.tabs{display:flex;gap:4px;padding:13px 14px;border-bottom:1px solid #28354a;flex-wrap:wrap}.tabs button{border:0;padding:9px 12px;font-size:13px;color:#8fa4be}.tabs button[aria-selected=true]{background:#26374b;color:#c2f2e2}#pane{margin:0;padding:24px;font:14px/1.8 Consolas,monospace;min-height:455px;max-height:560px;overflow:auto;white-space:pre;color:#d0e0f3}.foot{display:flex;justify-content:space-between;gap:15px;margin-top:24px;color:#788da9;font-size:12px;line-height:1.6}#status{color:#afc3db;font-size:12px} @media(max-width:900px){.shell{padding:24px 18px}.layout{grid-template-columns:1fr}.intro h2{font-size:29px}.pipeline{gap:4px}.stage{font-size:11px;padding:8px}.foot{display:block}.badge{display:none}}
-</style>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Expression Parser</title>
+
+  <style>
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      background: #f5f5f5;
+      color: #222;
+      font-family: Arial, sans-serif;
+    }
+
+    button,
+    select,
+    textarea {
+      font-family: Arial, sans-serif;
+      font-size: 14px;
+    }
+
+    .container {
+      width: 90%;
+      max-width: 1100px;
+      margin: 30px auto;
+    }
+
+    h1 {
+      margin: 0 0 5px;
+      font-size: 26px;
+    }
+
+    .description {
+      margin: 0;
+      color: #666;
+      font-size: 14px;
+    }
+
+    .pipeline {
+      display: flex;
+      gap: 6px;
+      margin: 20px 0;
+    }
+
+    .stage {
+      flex: 1;
+      padding: 9px;
+      background: white;
+      border: 1px solid #ccc;
+      font-size: 12px;
+      color: #666;
+    }
+
+    .stage b {
+      display: block;
+      margin-top: 4px;
+      color: #222;
+      font-weight: normal;
+    }
+
+    .stage.done {
+      background: #edf7f4;
+      border-color: #8bb8aa;
+    }
+
+    .stage.failed {
+      background: #fff0f0;
+      border-color: #d99;
+    }
+
+    .content {
+      display: flex;
+      gap: 12px;
+      align-items: stretch;
+    }
+
+    .left,
+    .right {
+      background: white;
+      border: 1px solid #ccc;
+    }
+
+    .left {
+      width: 42%;
+      padding: 15px;
+    }
+
+    .right {
+      width: 58%;
+    }
+
+    .section-title {
+      margin: 0 0 10px;
+      font-size: 14px;
+      font-weight: bold;
+    }
+
+    .example-row {
+      display: flex;
+      gap: 7px;
+    }
+
+    select {
+      flex: 1;
+      min-width: 0;
+      padding: 7px;
+      background: white;
+      color: #222;
+      border: 1px solid #bbb;
+    }
+
+    button {
+      padding: 7px 10px;
+      background: #f1f1f1;
+      color: #222;
+      border: 1px solid #bbb;
+      cursor: pointer;
+    }
+
+    button:hover {
+      background: #e7e7e7;
+    }
+
+    button:disabled {
+      opacity: 0.6;
+      cursor: default;
+    }
+
+    .lesson {
+      min-height: 48px;
+      color: #555;
+      font-size: 13px;
+      line-height: 1.4;
+    }
+
+    label {
+      display: block;
+      margin: 12px 0 6px;
+      font-size: 12px;
+      color: #444;
+    }
+
+    textarea {
+      width: 100%;
+      min-height: 150px;
+      padding: 10px;
+      resize: vertical;
+      background: #fafafa;
+      color: #111;
+      border: 1px solid #bbb;
+      font-family: Consolas, monospace;
+      font-size: 16px;
+    }
+
+    #run {
+      width: 100%;
+      margin-top: 10px;
+      background: #dbeafe;
+      border-color: #9dbbe5;
+      color: #163a67;
+      font-weight: bold;
+    }
+
+    #run:hover {
+      background: #cfe2fb;
+    }
+
+    .hint {
+      margin-top: 7px;
+      color: #777;
+      font-size: 11px;
+    }
+
+    .result-box {
+      margin-top: 18px;
+      padding-top: 12px;
+      border-top: 1px solid #ddd;
+    }
+
+    .result-header {
+      display: flex;
+      justify-content: space-between;
+      font-size: 12px;
+    }
+
+    #status {
+      color: #777;
+    }
+
+    #result {
+      margin-bottom: 0;
+      color: #245a44;
+      white-space: pre-wrap;
+      font-family: Consolas, monospace;
+      font-size: 21px;
+    }
+
+    #result.error {
+      color: #a33;
+      font-size: 13px;
+    }
+
+    .tabs {
+      display: flex;
+      border-bottom: 1px solid #ccc;
+    }
+
+    .tabs button {
+      border: 0;
+      border-right: 1px solid #ccc;
+      background: #f7f7f7;
+      font-size: 12px;
+    }
+
+    .tabs button[aria-selected="true"] {
+      background: #dbeafe;
+    }
+
+    #pane {
+      margin: 0;
+      padding: 14px;
+      min-height: 430px;
+      max-height: 560px;
+      overflow: auto;
+      white-space: pre;
+      color: #222;
+      font-family: Consolas, monospace;
+      font-size: 13px;
+      line-height: 1.5;
+    }
+
+    @media (max-width: 800px) {
+      .pipeline {
+        flex-wrap: wrap;
+      }
+
+      .stage {
+        min-width: 45%;
+      }
+
+      .content {
+        display: block;
+      }
+
+      .left,
+      .right {
+        width: 100%;
+      }
+
+      .right {
+        margin-top: 12px;
+      }
+    }
+  </style>
 </head>
-<body><main class="shell">
-<header><div class="brand"><div class="logo">eχ</div><div><h1>ExprScope</h1><div class="subtitle">Expression parser & evaluator</div></div></div><div class="badge">GROUP 02 · PPL FINAL PROJECT</div></header>
-<section class="intro"><h2>See how an expression becomes a result.</h2><p>Explore the tokens, inspect the syntax tree, and follow the evaluation — one stage at a time.</p></section>
-<div class="pipeline" aria-label="Processing stages"><div class="stage" data-stage="tokens">01<b>Lexical analysis</b></div><div class="stage" data-stage="ast">02<b>Parsing</b></div><div class="stage" data-stage="semantics">03<b>Semantic analysis</b></div><div class="stage" data-stage="trace">04<b>Evaluation</b></div><div class="stage" data-stage="output">05<b>Output</b></div></div>
-<div class="layout"><section class="panel pad"><div class="eyebrow">Expression workspace</div><div class="row"><select id="examples" aria-label="Demonstration example"></select><button id="next" aria-label="Next example">Next →</button></div><p class="lesson" id="lesson"></p><label for="source">SOURCE EXPRESSION</label><textarea id="source" spellcheck="false" maxlength="10000" aria-describedby="shortcut"></textarea><button id="run">Evaluate expression →</button><div class="hint" id="shortcut">Ctrl + Enter to evaluate · edit any example to explore</div><div class="result" aria-live="polite"><div class="row"><div class="eyebrow" style="margin:0">Result</div><span id="status">Ready</span></div><pre id="result">—</pre></div></section>
-<section class="panel"><div class="tabs" role="tablist" aria-label="Processing details"><button role="tab" aria-selected="true" data-tab="tokens">Tokens</button><button role="tab" aria-selected="false" data-tab="ast">Syntax tree</button><button role="tab" aria-selected="false" data-tab="semantics">Semantics</button><button role="tab" aria-selected="false" data-tab="trace">Evaluation</button><button role="tab" aria-selected="false" data-tab="report">Full report</button></div><pre id="pane" role="tabpanel" tabindex="0"></pre></section></div>
-<footer class="foot"><span>Number & Boolean · Lexical scope · Recursive-descent parsing · Static type checking</span><span>Runs locally · Python standard library · No eval()</span></footer>
-</main>
-<script>
-const $ = id => document.getElementById(id);
-let examples = [], report = {}, active = 'tokens', revision = 0;
-function showTab(key) { active = key; document.querySelectorAll('[data-tab]').forEach(b => b.setAttribute('aria-selected',String(b.dataset.tab===key))); $('pane').textContent=report[key] || 'This stage has not completed. See the full report for details.'; }
-function clearStages() { document.querySelectorAll('[data-stage]').forEach(e=>e.className='stage'); }
-function changed() {revision++;report={};clearStages();$('status').textContent='Input changed';$('result').textContent='Run to update';$('result').className='';$('pane').textContent='Evaluate the current expression to see its processing stages.';}
-async function evaluate() {
- const current=++revision; $('run').disabled=true; $('status').textContent='Evaluating…';
- try {const response=await fetch('/api/evaluate',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({source:$('source').value})});const data=await response.json();if(!response.ok)throw new Error(data.error||'Request failed');if(current!==revision)return; report=data;clearStages();
- document.querySelectorAll('[data-stage]').forEach(e=>{if(data[e.dataset.stage])e.classList.add('done');});
- if(data.error){const failed={Lexical:'tokens',Syntax:'ast',Semantic:'semantics',Runtime:'trace'}[data.stage];document.querySelector(`[data-stage="${failed}"]`).className='stage failed';$('result').textContent=data.error;$('result').className='error';$('status').textContent=data.stage+' error';showTab('report');}
- else{$('result').textContent=data.output;$('result').className='';$('status').textContent='Evaluation complete';showTab(active);}
- }catch(error){if(current!==revision)return;report={};clearStages();$('result').textContent='Could not evaluate: '+error.message+'\nKeep the Python presentation server running.';$('result').className='error';$('status').textContent='Connection error';$('pane').textContent='No result available.';}
- finally{$('run').disabled=false;}
-}
-function loadExample(){const item=examples[$('examples').selectedIndex];$('source').value=item.source;$('lesson').textContent=item.lesson;changed();evaluate();}
-$('source').addEventListener('input',()=>{changed();$('lesson').textContent='Custom expression. Inspect how your changes affect the processing stages.';});
-$('source').addEventListener('keydown',e=>{if(e.ctrlKey&&e.key==='Enter'){e.preventDefault();evaluate();}});
-$('run').addEventListener('click',evaluate);$('examples').addEventListener('change',loadExample);$('next').addEventListener('click',()=>{$('examples').selectedIndex=($('examples').selectedIndex+1)%examples.length;loadExample();});
-document.querySelectorAll('[data-tab]').forEach(b=>b.addEventListener('click',()=>showTab(b.dataset.tab)));
-fetch('/api/examples').then(r=>{if(!r.ok)throw new Error('Example request failed');return r.json();}).then(data=>{examples=data;examples.forEach((e,i)=>{const option=document.createElement('option');option.textContent=String(i+1).padStart(2,'0')+' / '+e.title;$('examples').append(option);});loadExample();}).catch(e=>{$('status').textContent='Connection error';$('result').textContent='Start the Python presentation server and reload this page.';});
-</script></body></html>
+<body>
+  <main class="container">
+    <h1>Expression Parser and Evaluator</h1>
+    <p class="description">
+      Enter an expression and check what happens in each stage.
+    </p>
+
+    <div class="pipeline" aria-label="Processing stages">
+      <div class="stage" data-stage="tokens">
+        01
+        <b>Lexical analysis</b>
+      </div>
+
+      <div class="stage" data-stage="ast">
+        02
+        <b>Parsing</b>
+      </div>
+
+      <div class="stage" data-stage="semantics">
+        03
+        <b>Semantic analysis</b>
+      </div>
+
+      <div class="stage" data-stage="trace">
+        04
+        <b>Evaluation</b>
+      </div>
+
+      <div class="stage" data-stage="output">
+        05
+        <b>Output</b>
+      </div>
+    </div>
+
+    <div class="content">
+      <section class="left">
+        <p class="section-title">Expression</p>
+
+        <div class="example-row">
+          <select id="examples" aria-label="Example expression"></select>
+          <button id="next">Next</button>
+        </div>
+
+        <p class="lesson" id="lesson"></p>
+
+        <label for="source">Source expression</label>
+        <textarea
+          id="source"
+          spellcheck="false"
+          maxlength="10000"
+          aria-describedby="shortcut"
+        ></textarea>
+
+        <button id="run">Evaluate</button>
+
+        <div class="hint" id="shortcut">
+          Ctrl + Enter also runs the expression
+        </div>
+
+        <div class="result-box" aria-live="polite">
+          <div class="result-header">
+            <span>Result</span>
+            <span id="status">Ready</span>
+          </div>
+
+          <pre id="result">-</pre>
+        </div>
+      </section>
+
+      <section class="right">
+        <div class="tabs" role="tablist" aria-label="Processing details">
+          <button role="tab" aria-selected="true" data-tab="tokens">Tokens</button>
+          <button role="tab" aria-selected="false" data-tab="ast">Syntax tree</button>
+          <button role="tab" aria-selected="false" data-tab="semantics">Semantics</button>
+          <button role="tab" aria-selected="false" data-tab="trace">Evaluation</button>
+          <button role="tab" aria-selected="false" data-tab="report">Full report</button>
+        </div>
+
+        <pre id="pane" role="tabpanel" tabindex="0"></pre>
+      </section>
+    </div>
+  </main>
+
+  <script>
+    const $ = id => document.getElementById(id);
+
+    let examples = [];
+    let report = {};
+    let active = 'tokens';
+    let revision = 0;
+
+    function showTab(key) {
+      active = key;
+
+      document.querySelectorAll('[data-tab]').forEach(button => {
+        const selected = button.dataset.tab === key;
+        button.setAttribute('aria-selected', String(selected));
+      });
+
+      $('pane').textContent = report[key] ||
+        'This stage has not completed. See the full report for details.';
+    }
+
+    function clearStages() {
+      document.querySelectorAll('[data-stage]').forEach(stage => {
+        stage.className = 'stage';
+      });
+    }
+
+    function changed() {
+      revision++;
+      report = {};
+
+      clearStages();
+
+      $('status').textContent = 'Input changed';
+      $('result').textContent = 'Run to update';
+      $('result').className = '';
+      $('pane').textContent =
+        'Evaluate the current expression to see its processing stages.';
+    }
+
+    async function evaluate() {
+      const current = ++revision;
+
+      $('run').disabled = true;
+      $('status').textContent = 'Evaluating...';
+
+      try {
+        const response = await fetch('/api/evaluate', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({
+            source: $('source').value
+          })
+        });
+
+        const data = await response.json();
+
+        if (!response.ok) {
+          throw new Error(data.error || 'Request failed');
+        }
+
+        if (current !== revision) {
+          return;
+        }
+
+        report = data;
+        clearStages();
+
+        document.querySelectorAll('[data-stage]').forEach(stage => {
+          if (data[stage.dataset.stage]) {
+            stage.classList.add('done');
+          }
+        });
+
+        if (data.error) {
+          const stageNames = {
+            Lexical: 'tokens',
+            Syntax: 'ast',
+            Semantic: 'semantics',
+            Runtime: 'trace'
+          };
+
+          const failedStage = stageNames[data.stage];
+          const failedElement = document.querySelector(
+            `[data-stage="${failedStage}"]`
+          );
+
+          if (failedElement) {
+            failedElement.className = 'stage failed';
+          }
+
+          $('result').textContent = data.error;
+          $('result').className = 'error';
+          $('status').textContent = data.stage + ' error';
+
+          showTab('report');
+        } else {
+          $('result').textContent = data.output;
+          $('result').className = '';
+          $('status').textContent = 'Evaluation complete';
+
+          showTab(active);
+        }
+      } catch (error) {
+        if (current !== revision) {
+          return;
+        }
+
+        report = {};
+        clearStages();
+
+        $('result').textContent =
+          'Could not evaluate: ' + error.message +
+          '\nKeep the Python presentation server running.';
+
+        $('result').className = 'error';
+        $('status').textContent = 'Connection error';
+        $('pane').textContent = 'No result available.';
+      } finally {
+        $('run').disabled = false;
+      }
+    }
+
+    function loadExample() {
+      const index = $('examples').selectedIndex;
+      const item = examples[index];
+
+      if (!item) {
+        return;
+      }
+
+      $('source').value = item.source;
+      $('lesson').textContent = item.lesson;
+
+      changed();
+      evaluate();
+    }
+
+    $('source').addEventListener('input', () => {
+      changed();
+      $('lesson').textContent =
+        'Custom expression. Check how your changes affect each stage.';
+    });
+
+    $('source').addEventListener('keydown', event => {
+      if (event.ctrlKey && event.key === 'Enter') {
+        event.preventDefault();
+        evaluate();
+      }
+    });
+
+    $('run').addEventListener('click', evaluate);
+    $('examples').addEventListener('change', loadExample);
+
+    $('next').addEventListener('click', () => {
+      if (examples.length === 0) {
+        return;
+      }
+
+      $('examples').selectedIndex =
+        ($('examples').selectedIndex + 1) % examples.length;
+
+      loadExample();
+    });
+
+    document.querySelectorAll('[data-tab]').forEach(button => {
+      button.addEventListener('click', () => {
+        showTab(button.dataset.tab);
+      });
+    });
+
+    fetch('/api/examples')
+      .then(response => {
+        if (!response.ok) {
+          throw new Error('Example request failed');
+        }
+
+        return response.json();
+      })
+      .then(data => {
+        examples = data;
+
+        examples.forEach((example, index) => {
+          const option = document.createElement('option');
+          option.textContent = (index + 1) + '. ' + example.title;
+          $('examples').append(option);
+        });
+
+        loadExample();
+      })
+      .catch(() => {
+        $('status').textContent = 'Connection error';
+        $('result').textContent =
+          'Start the Python presentation server and reload the page.';
+      });
+  </script>
+</body>
+</html>
