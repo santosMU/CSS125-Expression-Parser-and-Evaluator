@@ -1,6 +1,5 @@
-"""regression tests for semantics, numeric limits, reports, and command-line use."""
+"""Regression tests for semantics, numeric limits, reports, and command-line use."""
 
-import ast
 import contextlib
 import io
 import math
@@ -8,13 +7,12 @@ from pathlib import Path
 import subprocess
 import sys
 import tempfile
-import tokenize
 import unittest
 
 from exprscope import (
-    DEMO_CASES, EvalError, LexError, ParseError, SemanticError,
+    EXAMPLE_CASES, EvalError, LexError, ParseError, SemanticError,
     build_report, compile_expression, diagnostic, evaluate_source,
-    explain, main, recursive_fibonacci, repl, run_demo,
+    explain, main, recursive_fibonacci, repl, run_examples,
 )
 
 
@@ -98,7 +96,7 @@ class SemanticRegressionTests(unittest.TestCase):
                 self.assertIsNotNone(build_report(source).error)
 
 
-class PresentationTests(unittest.TestCase):
+class ReportTests(unittest.TestCase):
     def test_reports_retain_only_completed_stages(self):
         cases = [('2 $ 3', LexError, False, False, False),
                  ('2 + * 3', ParseError, True, False, False),
@@ -120,10 +118,10 @@ class PresentationTests(unittest.TestCase):
         self.assertNotIn('Binary /', report.trace)
         self.assertEqual(report.output, 'false : Boolean')
 
-    def test_demo_asserts_all_examples(self):
+    def test_examples_asserts_all_examples(self):
         with contextlib.redirect_stdout(io.StringIO()) as output:
-            self.assertTrue(run_demo())
-        self.assertEqual(output.getvalue().count('CHECK  PASS'), len(DEMO_CASES))
+            self.assertTrue(run_examples())
+        self.assertEqual(output.getvalue().count('CHECK  PASS'), len(EXAMPLE_CASES))
 
     def test_lexical_error_caret(self):
         report = build_report('2 +\n\t$')
@@ -143,7 +141,7 @@ class PresentationTests(unittest.TestCase):
     def test_file_mode_continues_after_errors(self):
         with tempfile.TemporaryDirectory() as directory:
             path = Path(directory) / 'expressions.txt'
-            path.write_text('# demonstration\n2 + 3\n0 ^ -1\n6 * 7\n', encoding='utf-8')
+            path.write_text('# example expressions\n2 + 3\n0 ^ -1\n6 * 7\n', encoding='utf-8')
             with contextlib.redirect_stdout(io.StringIO()) as output:
                 self.assertEqual(main(['--file', str(path)]), 1)
             self.assertIn('42 : Number', output.getvalue())
@@ -158,24 +156,12 @@ class PresentationTests(unittest.TestCase):
     def test_repl_recovers_after_failure(self):
         result = subprocess.run([sys.executable, '-B', 'exprscope.py'],
             input='0 ^ -1\n2 + 3\n:quit\n', capture_output=True, text=True,
-            cwd=Path(__file__).parent, timeout=10)
+            cwd=Path(__file__).resolve().parents[1], timeout=10)
         self.assertEqual(result.returncode, 0)
         self.assertIn('Runtime error', result.stdout)
         self.assertIn('5 : Number', result.stdout)
         self.assertNotIn('Traceback', result.stderr)
 
-    def test_comments_and_docstrings_are_lowercase(self):
-        for path in Path(__file__).parent.glob('*.py'):
-            text = path.read_text(encoding='utf-8')
-            for token in tokenize.generate_tokens(io.StringIO(text).readline):
-                if token.type == tokenize.COMMENT:
-                    self.assertEqual(token.string, token.string.lower(), str(path))
-            for node in ast.walk(ast.parse(text)):
-                body = getattr(node, 'body', None)
-                if isinstance(body, list) and body and isinstance(body[0], ast.Expr):
-                    value = body[0].value
-                    if isinstance(value, ast.Constant) and isinstance(value.value, str):
-                        self.assertEqual(value.value, value.value.lower(), str(path))
 
 
 if __name__ == '__main__':

@@ -1,30 +1,48 @@
 # ExprScope
 
-**Group 2 · Principles of Programming Languages**  
-An expression parser and evaluator with a visible lexer, syntax tree, static type checking, lexical scope, and execution trace.
+ExprScope is a typed expression parser and evaluator implemented in Python. It exposes tokens, an abstract syntax tree, static types, lexical scope, and execution traces through a CLI and local browser workspace.
 
-## Start the presentation
+## Requirements
 
-On Windows, double-click **launch.cmd**. It finds the Python launcher, Python on PATH, or the bundled runtime available on this machine. The window includes 12 examples, an editable input, processing-stage tabs, and a Next example button. Use **Ctrl+Enter** to evaluate edited input.
+Python 3.10+. No third-party packages or API keys are required. The browser interface binds to `127.0.0.1`.
 
-Alternatively:
-
-```console
-python exprscope_web.py
-```
-
-Requires Python **3.10+**. The GUI also requires the a standard-library local HTTP server and a browser module, normally included with Windows Python. The terminal works without Tk. No pip packages, network connection, or API keys are needed.
-
-## Terminal commands
+## Usage
 
 ```console
 python exprscope.py
 python exprscope.py "let x = 5 in x ^ 2 + 1"
 python exprscope.py --explain "2 + 3 * 4"
-python exprscope.py --demo
-python exprscope.py --file sample_inputs.txt
-python -m unittest discover -v
+python exprscope.py --examples
+python exprscope.py --file examples/expressions.txt
+python exprscope_web.py
+python -m unittest discover -s tests -v
 ```
+
+On Windows, `launch.cmd` opens the browser workspace. Server options include `--no-browser` and `--port 8766`.
+
+The REPL supports `:help`, `:tokens`, `:ast`, `:type`, `:explain`, `:examples`, and `:quit`. Batch processing continues after errors and returns a nonzero exit status if any expression fails. The supplied batch file includes intentional error cases.
+
+## Features
+
+- Arithmetic and Boolean expressions with explicit precedence and associativity.
+- Immutable lexical bindings, conditionals, and short-circuit evaluation.
+- Fixed mathematical functions: `abs`, `sqrt`, `min`, `max`, `fact`, and `fib`.
+- Lexical, syntax, semantic, and runtime diagnostics.
+- Explicit bounds on input and numeric computations.
+
+See the [language reference](docs/language-reference.md) for grammar, semantics, architecture, and limits.
+
+## Repository Layout
+
+| Path | Purpose |
+|---|---|
+| `exprscope.py` | Lexer, parser, AST, type checker, evaluator, reports, and CLI. |
+| `exprscope_web.py` | Local HTTP server and JSON endpoints. |
+| `web/index.html` | Browser expression workspace. |
+| `docs/language-reference.md` | Language specification and implementation reference. |
+| `tests/` | Regression and HTTP integration tests. |
+| `examples/expressions.txt` | Valid expressions and expected errors. |
+| `launch.cmd` | Windows launcher. |
 
 ## Influencing Frameworks and Related Repositories
 
@@ -36,5 +54,7 @@ Credit goes to the authors and contributors of the following open-source project
 | [parser-project](https://github.com/achanbour/parser-project), by achanbour and contributors | A Python calculator demonstrating lexical analysis and recursive-descent parsing; a reference for making arithmetic grammar and parsing steps explicit. | Focuses on a calculator model; ExprScope also demonstrates Boolean expressions, lexical scope, and static semantic checking. |
 | [simpleeval](https://github.com/danthedeckie/simpleeval), by danthedeckie and contributors | Controlled expression evaluation in Python; a reference for explicit handling of operators, names, and permitted functions. | Uses Python's `ast` module; ExprScope defines its own grammar, lexer, AST, and type checker. |
 
-These repositories address the same core task of parsing and evaluating expressions, but do not provide an identical language or feature set. They are reference projects rather than installed framework dependencies. ExprScope uses the Python standard library and its own implementation.
+| [Gee](https://github.com/pulanski/gee), by pulanski and contributors | Hand-written lexing, LL(1) recursive-descent parsing, AST construction, and a separate type checker; a conceptual reference for distinct syntax and semantic-analysis stages. | A compiler front-end for the Gee language; ExprScope also evaluates expressions and exposes execution traces. |
+| [Pascal-Interpreter](https://github.com/kevallakhani95/Pascal-Interpreter), by kevallakhani95 and contributors | A Python interpreter using a lexer, recursive-descent parser, AST traversal, and symbol-table definition and lookup; a conceptual reference for language-processing structure and identifier resolution. | Processes Pascal programs with declarations and statements; ExprScope evaluates a smaller expression language with immutable local bindings. |
 
+These projects provide related approaches to expression evaluation, interpretation, and compiler front-end analysis. Their languages and feature sets differ from ExprScope. They are conceptual references rather than installed framework dependencies. ExprScope uses the Python standard library and its own implementation.

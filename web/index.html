@@ -455,7 +455,7 @@
 
         $('result').textContent =
           'Could not evaluate: ' + error.message +
-          '\nKeep the Python presentation server running.';
+          '\nKeep the ExprScope web server running.';
 
         $('result').className = 'error';
         $('status').textContent = 'Connection error';
@@ -535,7 +535,7 @@
       .catch(() => {
         $('status').textContent = 'Connection error';
         $('result').textContent =
-          'Start the Python presentation server and reload the page.';
+          'Start the ExprScope web server and reload the page.';
       });
   </script>
 </body>

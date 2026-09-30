@@ -1,4 +1,4 @@
-"""integration checks for the local presentation endpoints."""
+"""Integration checks for the local web endpoints."""
 
 import http.client
 import json
@@ -6,13 +6,13 @@ import threading
 import unittest
 from http.server import ThreadingHTTPServer
 
-from exprscope_web import PresentationHandler
+from exprscope_web import ExprScopeHandler
 
 
 class WebTests(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
-        cls.server = ThreadingHTTPServer(('127.0.0.1', 0), PresentationHandler)
+        cls.server = ThreadingHTTPServer(('127.0.0.1', 0), ExprScopeHandler)
         cls.worker = threading.Thread(target=cls.server.serve_forever, daemon=True)
         cls.worker.start()
 
@@ -34,7 +34,7 @@ class WebTests(unittest.TestCase):
     def test_page_and_examples(self):
         status, body = self.request('GET', '/')
         self.assertEqual(status, 200)
-        self.assertIn('Expression workspace', body)
+        self.assertIn('Expression Parser and Evaluator', body)
         status, body = self.request('GET', '/api/examples')
         self.assertEqual(status, 200)
         self.assertEqual(len(json.loads(body)), 12)

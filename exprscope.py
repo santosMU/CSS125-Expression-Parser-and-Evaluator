@@ -1,15 +1,5 @@
 #!/usr/bin/env python3
-"""
-exprscope
-group 2: expression parser and evaluator
-css125p - principles of programming languages
-
-processing flow:
-source/input -> lexical analysis -> parsing -> semantic analysis
--> evaluation -> output
-
-the implementation uses only the python standard library.
-"""
+"""Parse, type-check, and evaluate the ExprScope expression language."""
 
 from __future__ import annotations
 
@@ -24,12 +14,10 @@ import re
 from typing import Any, Callable, Dict, List, Optional
 
 
-# ============================================================
 # errors
-# ============================================================
 
 class ExprScopeError(Exception):
-    """base class for user-facing language errors."""
+    """Base class for user-facing language errors."""
 
 
 MAX_SOURCE_LENGTH = 10000
@@ -39,7 +27,7 @@ MAX_EXPONENT = 4096
 
 
 def checked_number(value):
-    """keep every intermediate value inside the documented numeric domain."""
+    """Keep every intermediate value inside the documented numeric domain."""
     if isinstance(value, int) and not isinstance(value, bool):
         if value.bit_length() > MAX_INTEGER_BITS:
             raise EvalError("Integer result exceeds the 4096-bit limit.")
@@ -66,9 +54,7 @@ class EvalError(ExprScopeError):
     pass
 
 
-# ============================================================
 # tokens and lexical analysis
-# ============================================================
 
 class TokenType(Enum):
     NUMBER = auto()
@@ -216,9 +202,7 @@ class Lexer:
         return tokens
 
 
-# ============================================================
 # abstract syntax tree
-# ============================================================
 
 class Expr:
     pass
@@ -272,9 +256,7 @@ class CallExpr(Expr):
     arguments: List[Expr]
 
 
-# ============================================================
 # recursive-descent parser
-# ============================================================
 
 class Parser:
     """
@@ -456,9 +438,7 @@ class Parser:
         )
 
 
-# ============================================================
 # semantic analysis and type checking
-# ============================================================
 
 class ValueType(Enum):
     NUMBER = "Number"
@@ -466,7 +446,7 @@ class ValueType(Enum):
 
 
 class TypeEnvironment:
-    """lexically scoped type environment / symbol table."""
+    """Lexically scoped type environment / symbol table."""
 
     def __init__(self, parent: Optional["TypeEnvironment"] = None):
         self.parent = parent
@@ -621,12 +601,10 @@ class SemanticAnalyzer:
             raise SemanticError(message)
 
 
-# ============================================================
 # evaluation
-# ============================================================
 
 class Environment:
-    """runtime environment implementing lexical scoping."""
+    """Runtime environment implementing lexical scoping."""
 
     def __init__(self, parent: Optional["Environment"] = None):
         self.parent = parent
@@ -685,14 +663,14 @@ def function_max(a: int | float, b: int | float) -> int | float:
 def function_fact(x: int | float) -> int:
     n = _require_nonnegative_integer(x, "fact")
     if n > 200:
-        raise EvalError("fact argument is limited to 200 for this recursive demo.")
+        raise EvalError("fact argument is limited to 200 for recursive evaluation.")
     return recursive_factorial(n)
 
 
 def function_fib(x: int | float) -> int:
     n = _require_nonnegative_integer(x, "fib")
     if n > 200:
-        raise EvalError("fib argument is limited to 200 for this recursive demo.")
+        raise EvalError("fib argument is limited to 200 for recursive evaluation.")
     return recursive_fibonacci(n)
 
 
@@ -818,12 +796,10 @@ class Evaluator:
         raise EvalError("Unknown AST node during evaluation.")
 
 
-# ============================================================
 # ast formatting and public api
-# ============================================================
 
 def format_ast(expr: Expr, indent: str = "") -> str:
-    """returns a readable tree representation of the ast."""
+    """Returns a readable tree representation of the ast."""
     next_indent = indent + "  "
 
     if isinstance(expr, NumberExpr):
@@ -878,7 +854,7 @@ def format_ast(expr: Expr, indent: str = "") -> str:
 
 
 def compile_expression(source: str) -> tuple[List[Token], Expr, ValueType]:
-    """runs lexical analysis, parsing, and semantic analysis."""
+    """Runs lexical analysis, parsing, and semantic analysis."""
     tokens = Lexer(source).scan()
     try:
         ast = Parser(tokens).parse()
@@ -892,7 +868,7 @@ def compile_expression(source: str) -> tuple[List[Token], Expr, ValueType]:
 
 
 def evaluate_source(source: str) -> Any:
-    """runs the complete processing pipeline and returns the result."""
+    """Runs the complete processing pipeline and returns the result."""
     _, ast, _ = compile_expression(source)
     return Evaluator().evaluate(ast)
 
@@ -903,18 +879,16 @@ def format_value(value: Any) -> str:
     return str(value)
 
 
-# ============================================================
-# interactive demonstration
-# ============================================================
+# command-line interface and examples
 
 HELP_TEXT = """
-ExprScope | Group 2 - Expression Parser and Evaluator
+ExprScope | Expression Parser and Evaluator
   :help                 Show commands
   :tokens <expression>  Show tokens and source positions
   :ast <expression>     Show the abstract syntax tree
   :type <expression>    Show the inferred type
   :explain <expression> Show every processing stage and evaluation trace
-  :demo                 Run the guided, self-checking presentation
+  :examples             Run the self-checking examples
   :quit                 Exit
 
 Try: let x = 5 in if x > 3 then fact(x) else 0
@@ -929,7 +903,7 @@ def error_stage(error: ExprScopeError) -> str:
 
 
 def diagnostic(source: str, error: ExprScopeError) -> str:
-    """show a source caret when the lexer or parser supplies a position."""
+    """Show a source caret when the lexer or parser supplies a position."""
     message = f"{error_stage(error)} error: {error}"
     match = re.search(r"position (\d+)", str(error))
     if match:
@@ -967,7 +941,7 @@ class PipelineReport:
 
 
 def build_report(source: str) -> PipelineReport:
-    """execute once and retain completed stages, even when a later stage fails."""
+    """Execute once and retain completed stages, even when a later stage fails."""
     report = PipelineReport(source)
     stage_error = ParseError
     try:
@@ -994,11 +968,11 @@ def build_report(source: str) -> PipelineReport:
 
 
 def explain(source: str) -> str:
-    """format a complete pipeline report for the terminal."""
+    """Format a complete pipeline report for the terminal."""
     return build_report(source).render()
 
 
-DEMO_CASES = [
+EXAMPLE_CASES = [
     ("Precedence", "2 + 3 * 4", 14, "Multiplication forms a subtree before addition."),
     ("Parentheses", "(2 + 3) * 4", 20, "Parentheses change the tree, and therefore the result."),
     ("Associativity", "2 ^ 3 ^ 2", 512, "Power groups to the right: 2 ^ (3 ^ 2)."),
@@ -1018,10 +992,10 @@ DEMO_CASES = [
 ]
 
 
-def run_demo() -> bool:
-    print("EXPRSCOPE | GROUP 2 | GUIDED DEMONSTRATION")
+def run_examples() -> bool:
+    print("EXPRSCOPE | EXAMPLES")
     passed = 0
-    for index, (title, source, expected, lesson) in enumerate(DEMO_CASES, 1):
+    for index, (title, source, expected, lesson) in enumerate(EXAMPLE_CASES, 1):
         print(f"\n{'=' * 64}\n{index:02d}. {title}\n{lesson}")
         print(explain(source))
         try:
@@ -1031,8 +1005,8 @@ def run_demo() -> bool:
             correct = isinstance(expected, type) and type(exc) is expected
         passed += correct
         print("CHECK  " + ("PASS" if correct else "FAIL"))
-    print(f"\nDemonstration checks: {passed}/{len(DEMO_CASES)} passed.")
-    return passed == len(DEMO_CASES)
+    print(f"\nExample checks: {passed}/{len(EXAMPLE_CASES)} passed.")
+    return passed == len(EXAMPLE_CASES)
 
 
 def repl() -> None:
@@ -1050,8 +1024,8 @@ def repl() -> None:
         if source == ":help":
             print(HELP_TEXT)
             continue
-        if source == ":demo":
-            run_demo()
+        if source == ":examples":
+            run_examples()
             continue
         command, _, expression = source.partition(" ")
         try:
@@ -1079,15 +1053,15 @@ def repl() -> None:
 
 
 def main(argv=None) -> int:
-    parser = argparse.ArgumentParser(description="ExprScope: Group 2 expression parser and evaluator")
+    parser = argparse.ArgumentParser(description="ExprScope: typed expression parser and evaluator")
     group = parser.add_mutually_exclusive_group()
-    group.add_argument("--demo", action="store_true", help="run the self-checking guided demo")
+    group.add_argument("--examples", action="store_true", help="run the self-checking examples")
     group.add_argument("--explain", metavar="EXPRESSION", help="show the full processing pipeline")
     group.add_argument("--file", type=Path, help="evaluate one expression per line; skip blank and # lines")
     group.add_argument("expression", nargs="?", help="evaluate a quoted expression")
     args = parser.parse_args(argv)
-    if args.demo:
-        return 0 if run_demo() else 1
+    if args.examples:
+        return 0 if run_examples() else 1
     if args.explain is not None:
         report = build_report(args.explain)
         print(report.render())

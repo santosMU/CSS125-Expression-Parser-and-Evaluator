@@ -1,4 +1,4 @@
-"""local presentation server using only the python standard library."""
+"""Local browser interface using the Python standard library."""
 
 import argparse
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
@@ -6,10 +6,10 @@ import json
 from pathlib import Path
 import webbrowser
 
-from exprscope import DEMO_CASES, build_report, diagnostic, error_stage
+from exprscope import EXAMPLE_CASES, build_report, diagnostic, error_stage
 
 
-class PresentationHandler(BaseHTTPRequestHandler):
+class ExprScopeHandler(BaseHTTPRequestHandler):
     def log_message(self, format, *args):
         pass
 
@@ -26,14 +26,14 @@ class PresentationHandler(BaseHTTPRequestHandler):
     def do_GET(self):
         if self.path == '/':
             try:
-                page = Path(__file__).with_name('presentation.html').read_text(encoding='utf-8')
+                page = (Path(__file__).parent / 'web' / 'index.html').read_text(encoding='utf-8')
             except OSError:
-                self.respond(500, {'error': 'presentation.html is missing from the project folder.'})
+                self.respond(500, {'error': 'web/index.html is missing from the project folder.'})
                 return
             self.respond(200, page, 'text/html; charset=utf-8')
         elif self.path == '/api/examples':
             self.respond(200, [{'title': title, 'source': source, 'lesson': lesson}
-                               for title, source, _, lesson in DEMO_CASES])
+                               for title, source, _, lesson in EXAMPLE_CASES])
         else:
             self.respond(404, {'error': 'Not found.'})
 
@@ -66,22 +66,22 @@ class PresentationHandler(BaseHTTPRequestHandler):
 
 
 def main(argv=None):
-    parser = argparse.ArgumentParser(description='Open the local ExprScope presentation.')
+    parser = argparse.ArgumentParser(description='Open the local ExprScope web interface.')
     parser.add_argument('--port', type=int, default=8765)
     parser.add_argument('--no-browser', action='store_true')
     args = parser.parse_args(argv)
     try:
-        server = ThreadingHTTPServer(('127.0.0.1', args.port), PresentationHandler)
+        server = ThreadingHTTPServer(('127.0.0.1', args.port), ExprScopeHandler)
     except OSError as exc:
-        parser.exit(1, f'Cannot start presentation: {exc}\nTry --port 8766.\n')
+        parser.exit(1, f'Cannot start web interface: {exc}\nTry --port 8766.\n')
     url = f'http://127.0.0.1:{server.server_port}/'
-    print(f'ExprScope presentation: {url}\nPress Ctrl+C to stop.', flush=True)
+    print(f'ExprScope web interface: {url}\nPress Ctrl+C to stop.', flush=True)
     if not args.no_browser:
         webbrowser.open(url)
     try:
         server.serve_forever()
     except KeyboardInterrupt:
-        print('\nPresentation stopped.')
+        print('\nWeb server stopped.')
     finally:
         server.server_close()
 

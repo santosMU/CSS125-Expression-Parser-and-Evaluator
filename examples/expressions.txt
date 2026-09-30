@@ -1,4 +1,4 @@
-# exprscope demonstration inputs
+# exprscope example expressions
 
 # 1. operator precedence
 2 + 3 * 4
